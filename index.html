@@ -1,0 +1,581 @@
+
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500&family=Source+Serif+4:ital,wght@0,300;0,400;1,300&display=swap');
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  #app { min-height: 600px; display: flex; align-items: center; justify-content: center; font-family: 'Source Serif 4', Georgia, serif; background: var(--color-background-primary); padding: 2rem; }
+  .screen { display: none; width: 100%; max-width: 780px; animation: fadeIn 0.35s ease; }
+  .screen.active { display: block; }
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
+  .screen-inner { background: var(--color-background-primary); border: 0.5px solid var(--color-border-tertiary); border-radius: var(--border-radius-lg); padding: 2.5rem 3rem; }
+  .logo-bar { display: flex; align-items: center; gap: 10px; margin-bottom: 2rem; padding-bottom: 1.25rem; border-bottom: 0.5px solid var(--color-border-tertiary); }
+  .logo-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--color-text-primary); }
+  .logo-text { font-size: 11px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--color-text-secondary); font-family: var(--font-sans); }
+  .screen-number { font-size: 11px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--color-text-tertiary); font-family: var(--font-sans); margin-bottom: 0.8rem; }
+  h1 { font-family: 'Playfair Display', Georgia, serif; font-size: 24px; font-weight: 400; color: var(--color-text-primary); margin-bottom: 1.4rem; line-height: 1.3; }
+  h2 { font-family: 'Playfair Display', Georgia, serif; font-size: 18px; font-weight: 400; color: var(--color-text-primary); margin-bottom: 1rem; line-height: 1.4; }
+  p.instruction { font-size: 15px; line-height: 1.75; color: var(--color-text-secondary); margin-bottom: 1.1rem; }
+  .spacebar-hint { display: flex; align-items: center; gap: 10px; margin-top: 2rem; padding-top: 1.25rem; border-top: 0.5px solid var(--color-border-tertiary); }
+  .key-badge { display: inline-flex; align-items: center; justify-content: center; font-family: var(--font-sans); font-size: 11px; letter-spacing: 0.05em; padding: 4px 12px; border: 0.5px solid var(--color-border-secondary); border-radius: var(--border-radius-md); background: var(--color-background-secondary); color: var(--color-text-primary); }
+  .hint-text { font-size: 13px; color: var(--color-text-tertiary); font-family: var(--font-sans); }
+
+  /* SELECTION COLOR — pastel blue */
+  :root {
+    --sel-bg: #ddeef8;
+    --sel-border: #7ab8d9;
+    --sel-text: #1a4a63;
+    --sel-check-bg: #5a9fca;
+    --sel-check-color: #fff;
+  }
+
+  /* Auth */
+  .field { margin-bottom: 1.1rem; }
+  .field label { display: block; font-size: 11px; letter-spacing: 0.07em; text-transform: uppercase; color: var(--color-text-secondary); font-family: var(--font-sans); margin-bottom: 5px; }
+  .field input, .field select { width: 100%; padding: 9px 13px; font-size: 15px; font-family: 'Source Serif 4', Georgia, serif; border: 0.5px solid var(--color-border-secondary); border-radius: var(--border-radius-md); background: var(--color-background-primary); color: var(--color-text-primary); }
+  .field input:focus, .field select:focus { outline: none; border-color: var(--color-border-primary); }
+  .field-row { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+  .btn-primary { display: inline-block; padding: 10px 26px; font-size: 14px; font-family: var(--font-sans); border: 0.5px solid var(--color-border-primary); border-radius: var(--border-radius-md); background: var(--color-background-primary); color: var(--color-text-primary); cursor: pointer; margin-top: 0.8rem; transition: background 0.15s; }
+  .btn-primary:hover { background: var(--color-background-secondary); }
+
+  /* Text passage */
+  .passage { background: var(--color-background-secondary); border-left: 2px solid var(--color-border-primary); border-radius: 0 var(--border-radius-md) var(--border-radius-md) 0; padding: 1.4rem 1.8rem; margin-bottom: 1.8rem; font-size: 15px; line-height: 1.85; color: var(--color-text-primary); }
+
+  /* Scales */
+  .scale-block { margin-bottom: 1.8rem; }
+  .scale-label { font-size: 14px; font-family: var(--font-sans); color: var(--color-text-primary); margin-bottom: 0.6rem; font-weight: 500; }
+  .scale-row { display: flex; align-items: center; gap: 10px; }
+  .scale-end { font-size: 11px; font-family: var(--font-sans); color: var(--color-text-tertiary); min-width: 52px; text-align: center; line-height: 1.4; }
+  .scale-track { flex: 1; }
+  .scale-track input[type=range] { width: 100%; }
+  .scale-ticks { display: flex; justify-content: space-between; padding: 3px 0 0; }
+  .scale-tick { font-size: 10px; font-family: var(--font-sans); color: var(--color-text-tertiary); }
+  .scale-value { font-size: 15px; font-family: var(--font-sans); font-weight: 500; color: var(--color-text-primary); min-width: 32px; text-align: center; }
+
+  /* IMAGE CHOICE */
+  .image-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1rem; margin-bottom: 1.5rem; }
+  .img-option { border: 1.5px solid var(--color-border-tertiary); border-radius: var(--border-radius-lg); overflow: hidden; cursor: pointer; transition: all 0.15s; aspect-ratio: 4/3; background: var(--color-background-secondary); display: flex; flex-direction: column; align-items: center; justify-content: center; position: relative; }
+  .img-option:hover { border-color: var(--sel-border); transform: translateY(-2px); }
+  .img-option.selected { border: 2.5px solid var(--sel-border); background: var(--sel-bg); transform: translateY(-3px); }
+  .img-option .checkmark { position: absolute; top: 8px; right: 8px; width: 22px; height: 22px; border-radius: 50%; background: var(--sel-check-bg); color: var(--sel-check-color); display: none; align-items: center; justify-content: center; font-size: 13px; font-family: var(--font-sans); font-weight: 700; }
+  .img-option.selected .checkmark { display: flex; }
+  .img-option svg { width: 72%; height: 72%; opacity: 0.45; }
+  .img-option.selected svg { opacity: 0.65; }
+  .img-label { font-size: 12px; font-family: var(--font-sans); color: var(--color-text-secondary); margin-top: 6px; }
+  .img-option.selected .img-label { color: var(--sel-text); font-weight: 500; }
+
+  /* EMOJI */
+  .emoji-row { display: flex; gap: 6px; margin-bottom: 1.5rem; justify-content: space-between; }
+  .emoji-btn { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 5px; padding: 10px 4px 8px; border: 1px solid var(--color-border-tertiary); border-radius: var(--border-radius-md); cursor: pointer; background: var(--color-background-primary); transition: all 0.15s; position: relative; }
+  .emoji-btn:hover { border-color: var(--sel-border); background: #f0f8fd; }
+  .emoji-btn.selected { border: 2px solid var(--sel-border); background: var(--sel-bg); }
+  .emoji-btn .face { font-size: 26px; line-height: 1; }
+  .emoji-btn .elabel { font-size: 9px; font-family: var(--font-sans); color: var(--color-text-tertiary); text-align: center; line-height: 1.2; }
+  .emoji-btn.selected .elabel { color: var(--sel-text); }
+  /* checkmark badge on emoji */
+  .emoji-btn .echeck { position: absolute; top: 4px; right: 4px; width: 14px; height: 14px; border-radius: 50%; background: var(--sel-check-bg); color: var(--sel-check-color); display: none; align-items: center; justify-content: center; font-size: 9px; font-weight: 700; }
+  .emoji-btn.selected .echeck { display: flex; }
+
+  /* WORD CHIPS */
+  .word-section-label { font-size: 11px; font-family: var(--font-sans); color: var(--color-text-tertiary); margin-bottom: 6px; letter-spacing: 0.05em; text-transform: uppercase; }
+  .word-cloud { display: flex; flex-wrap: wrap; gap: 7px; margin-bottom: 1rem; }
+  .word-chip { padding: 7px 14px; font-size: 14px; font-family: var(--font-sans); border: 1px solid var(--color-border-secondary); border-radius: 20px; cursor: pointer; background: var(--color-background-primary); color: var(--color-text-primary); transition: all 0.15s; user-select: none; display: inline-flex; align-items: center; gap: 5px; }
+  .word-chip:hover { border-color: var(--sel-border); background: #f0f8fd; }
+  .word-chip.selected { background: var(--sel-bg); color: var(--sel-text); border-color: var(--sel-border); font-weight: 500; }
+  /* checkmark inside chip */
+  .word-chip .wcheck { width: 14px; height: 14px; border-radius: 50%; background: var(--sel-check-bg); color: var(--sel-check-color); display: none; align-items: center; justify-content: center; font-size: 9px; font-weight: 700; flex-shrink: 0; }
+  .word-chip.selected .wcheck { display: flex; }
+
+  /* SENTENCES */
+  .sentence-list { display: flex; flex-direction: column; gap: 8px; margin-bottom: 1.5rem; }
+  .sent-btn { padding: 11px 16px; font-size: 14px; font-family: 'Source Serif 4', Georgia, serif; border: 1px solid var(--color-border-secondary); border-radius: var(--border-radius-md); cursor: pointer; background: var(--color-background-primary); color: var(--color-text-primary); text-align: left; transition: all 0.15s; display: flex; align-items: center; gap: 10px; }
+  .sent-btn .scheck { width: 18px; height: 18px; border-radius: 4px; border: 1.5px solid var(--color-border-secondary); flex-shrink: 0; transition: all 0.15s; display: flex; align-items: center; justify-content: center; font-size: 11px; color: transparent; }
+  .sent-btn:hover { border-color: var(--sel-border); background: #f0f8fd; }
+  .sent-btn:hover .scheck { border-color: var(--sel-border); }
+  .sent-btn.selected { background: var(--sel-bg); color: var(--sel-text); border-color: var(--sel-border); }
+  .sent-btn.selected .scheck { background: var(--sel-check-bg); border-color: var(--sel-check-bg); color: var(--sel-check-color); }
+
+  /* Nav */
+  .q-section { margin-bottom: 1.5rem; padding-top: 1.25rem; border-top: 0.5px solid var(--color-border-tertiary); }
+  .q-title { font-size: 13px; font-family: var(--font-sans); font-weight: 500; color: var(--color-text-primary); margin-bottom: 0.9rem; }
+  .nav-bar { display: flex; align-items: center; justify-content: space-between; margin-top: 1.8rem; padding-top: 1.25rem; border-top: 0.5px solid var(--color-border-tertiary); }
+  .btn-next { display: inline-flex; align-items: center; gap: 8px; padding: 10px 22px; font-size: 14px; font-family: var(--font-sans); border: 0.5px solid var(--color-border-primary); border-radius: var(--border-radius-md); background: var(--color-background-primary); color: var(--color-text-primary); cursor: pointer; transition: background 0.15s; }
+  .btn-next:hover { background: var(--color-background-secondary); }
+  .progress-dots { display: flex; gap: 5px; }
+  .pdot { width: 6px; height: 6px; border-radius: 50%; background: var(--color-border-tertiary); }
+  .pdot.done { background: var(--color-text-tertiary); }
+  .pdot.current { background: var(--color-text-primary); }
+  .error-msg { font-size: 12px; font-family: var(--font-sans); color: #c0392b; margin-top: 0.5rem; display: none; }
+  .divider-sm { margin: 0.9rem 0; border: none; border-top: 0.5px solid var(--color-border-tertiary); }
+
+  /* Timer */
+  .timer-badge { display: inline-flex; align-items: center; gap: 6px; font-size: 11px; font-family: var(--font-mono); color: var(--color-text-tertiary); padding: 3px 10px; border: 0.5px solid var(--color-border-tertiary); border-radius: 20px; }
+  .timer-dot { width: 5px; height: 5px; border-radius: 50%; background: #888; animation: pulse 1.5s infinite; }
+  @keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: 0.3; } }
+
+  /* Final */
+  .final-icon { width: 52px; height: 52px; border-radius: 50%; border: 0.5px solid var(--color-border-tertiary); display: flex; align-items: center; justify-content: center; margin-bottom: 1.25rem; font-size: 22px; }
+  .csv-preview { background: var(--color-background-secondary); border-radius: var(--border-radius-md); padding: 1rem 1.25rem; font-size: 11px; font-family: var(--font-mono); color: var(--color-text-secondary); margin: 1.25rem 0; max-height: 160px; overflow-y: auto; line-height: 1.6; word-break: break-all; }
+</style>
+
+<div id="app">
+
+<!-- S1: AUTH -->
+<div class="screen active" id="s1">
+  <div class="screen-inner">
+    <div class="logo-bar"><div class="logo-dot"></div><span class="logo-text">Лингвистическое исследование · 2026</span></div>
+    <div class="screen-number">Шаг 1 из 7</div>
+    <h1>Авторизация участника</h1>
+    <div class="field-row">
+      <div class="field"><label>Имя</label><input type="text" id="auth-name" placeholder="Иван" autocomplete="off"></div>
+      <div class="field"><label>Фамилия</label><input type="text" id="auth-surname" placeholder="Иванов" autocomplete="off"></div>
+    </div>
+    <div class="field-row">
+      <div class="field"><label>Возраст</label><input type="number" id="auth-age" placeholder="25" min="10" max="99"></div>
+      <div class="field"><label>Родной язык</label><input type="text" id="auth-lang" placeholder="Русский"></div>
+    </div>
+    <div class="field">
+      <label>Уровень владения русским языком</label>
+      <select id="auth-level">
+        <option value="">— Выберите уровень —</option>
+        <option>A1 — Начальный</option><option>A2 — Элементарный</option>
+        <option>B1 — Пороговый</option><option>B2 — Пороговый продвинутый</option>
+        <option>C1 — Профессиональный</option><option>C2 — Владение в совершенстве</option>
+        <option>Родной</option>
+      </select>
+    </div>
+    <div class="field"><label>Код участника (опционально)</label><input type="text" id="auth-code" placeholder="P-001" autocomplete="off"></div>
+    <div class="error-msg" id="auth-err">Пожалуйста, заполните имя, фамилию и уровень.</div>
+    <button class="btn-primary" onclick="authSubmit()">Начать исследование →</button>
+  </div>
+</div>
+
+<!-- S2: WELCOME -->
+<div class="screen" id="s2">
+  <div class="screen-inner">
+    <div class="logo-bar"><div class="logo-dot"></div><span class="logo-text">Лингвистическое исследование · 2026</span></div>
+    <div class="screen-number">Шаг 2 из 7</div>
+    <h1>Уважаемый участник исследования!</h1>
+    <p class="instruction">Вы принимаете участие в тестировании нового онлайн-пособия по изучению русского языка как иностранного. Ваши результаты позволят нам определить наивысшие критерии для остальных пользователей пособия.</p>
+    <p class="instruction">Очень важно, чтобы Вы выполняли задания так хорошо, как только сможете, проходили все этапы тестирования максимально внимательно и не отвлекались во время выполнения заданий.</p>
+    <div class="spacebar-hint"><span class="key-badge">ПРОБЕЛ</span><span class="hint-text">для перехода к следующему экрану</span></div>
+    <div class="progress-dots" style="margin-top:1.5rem">
+      <div class="pdot done"></div><div class="pdot current"></div>
+      <div class="pdot"></div><div class="pdot"></div><div class="pdot"></div><div class="pdot"></div><div class="pdot"></div>
+    </div>
+  </div>
+</div>
+
+<!-- S3: INSTRUCTIONS -->
+<div class="screen" id="s3">
+  <div class="screen-inner">
+    <div class="logo-bar"><div class="logo-dot"></div><span class="logo-text">Лингвистическое исследование · 2026</span></div>
+    <div class="screen-number">Шаг 3 из 7</div>
+    <h1>Инструкция</h1>
+    <p class="instruction">Вам будут последовательно предъявлены тексты на русском языке. Вы должны прочитать каждый текст от начала и до конца, сразу после этого Вам нужно будет оценить его по двум шкалам — шкале сложности и шкале интереса, выбирая тот вариант ответа, который лучше всего отражает Ваше впечатление.</p>
+    <p class="instruction">Затем нужно будет выполнить несколько заданий на понимание и запоминание прочитанного текста. Старайтесь опираться только на содержание, не пропускайте задания — отвечайте последовательно на все вопросы.</p>
+    <p class="instruction">Когда Вы завершите работу с одним текстом и связанными с ним заданиями, система автоматически предложит Вам следующий текст.</p>
+    <p class="instruction" style="font-weight:500; color: var(--color-text-primary);">Заранее благодарим Вас за участие и желаем успеха!</p>
+    <div class="spacebar-hint"><span class="key-badge">ПРОБЕЛ</span><span class="hint-text">чтобы начать исследование</span></div>
+    <div class="progress-dots" style="margin-top:1.5rem">
+      <div class="pdot done"></div><div class="pdot done"></div>
+      <div class="pdot current"></div><div class="pdot"></div><div class="pdot"></div><div class="pdot"></div><div class="pdot"></div>
+    </div>
+  </div>
+</div>
+
+<!-- S4: TEXT + SCALES -->
+<div class="screen" id="s4">
+  <div class="screen-inner">
+    <div class="logo-bar">
+      <div class="logo-dot"></div>
+      <span class="logo-text">Серия 1 · Текст и оценка</span>
+      <span style="margin-left:auto"><span class="timer-badge"><span class="timer-dot"></span><span id="timer-s4">00:00</span></span></span>
+    </div>
+    <div class="screen-number">Шаг 4 из 7 — Прочитайте текст и оцените его</div>
+    <div class="passage">
+      Летом Парк Горького похож на большой зелёный двор в центре города. От главного входа идёт прямая аллея к фонтану. Вокруг него сидят люди на лавках и бордюрах, пьют кофе, разговаривают и смотрят струи воды. Чуть дальше начинается длинная набережная. С одной стороны видна река с лодками и катерами, с другой растут деревья и тянутся аккуратные газоны, на траве лежат пледы и велосипеды. По широкой дорожке катаются на велосипедах и самокатах, кто-то идёт бегать в наушниках, а кто-то просто медленно гуляет и делает фотографии. На газонах дети играют в мяч, взрослые лежат на пледах, читают книги или работают за ноутбуками. С набережной слышен плеск воды и стук вёсел, от реки тянет лёгкой прохладой. Люди подходят к ограждению, чтобы посмотреть на огни на другой стороне и на прогулочные катера. В глубине парка работают аттракционы и спортивные площадки. Кто-то катается на роликах, кто-то занимается на турниках, а пожилые пары сидят на скамейках и спокойно наблюдают за движением. Летом здесь почти всегда чувствуется запах свежей травы, кофе и уличной еды, и парк кажется небольшим городом внутри большого города.
+    </div>
+    <div class="scale-block">
+      <div class="scale-label">Насколько интересным был текст?</div>
+      <div class="scale-row">
+        <span class="scale-end">Совсем не интересен</span>
+        <div class="scale-track">
+          <input type="range" id="scale-interest" min="-10" max="10" value="0" step="1"
+            oninput="document.getElementById('sv-interest').textContent=(this.value>0?'+':'')+this.value; logScaleChange('interest',this.value)">
+          <div class="scale-ticks"><span class="scale-tick">−10</span><span class="scale-tick">−5</span><span class="scale-tick">0</span><span class="scale-tick">+5</span><span class="scale-tick">+10</span></div>
+        </div>
+        <span class="scale-end">Очень интересен</span>
+        <span class="scale-value" id="sv-interest">0</span>
+      </div>
+    </div>
+    <div class="scale-block">
+      <div class="scale-label">Насколько сложным Вам показался этот текст?</div>
+      <div class="scale-row">
+        <span class="scale-end">Очень лёгкий</span>
+        <div class="scale-track">
+          <input type="range" id="scale-difficulty" min="-10" max="10" value="0" step="1"
+            oninput="document.getElementById('sv-diff').textContent=(this.value>0?'+':'')+this.value; logScaleChange('difficulty',this.value)">
+          <div class="scale-ticks"><span class="scale-tick">−10</span><span class="scale-tick">−5</span><span class="scale-tick">0</span><span class="scale-tick">+5</span><span class="scale-tick">+10</span></div>
+        </div>
+        <span class="scale-end">Очень сложный</span>
+        <span class="scale-value" id="sv-diff">0</span>
+      </div>
+    </div>
+    <div class="nav-bar">
+      <div class="progress-dots">
+        <div class="pdot done"></div><div class="pdot done"></div><div class="pdot done"></div>
+        <div class="pdot current"></div><div class="pdot"></div><div class="pdot"></div><div class="pdot"></div>
+      </div>
+      <button class="btn-next" onclick="goTo(5)">Далее →</button>
+    </div>
+  </div>
+</div>
+
+<!-- S5: IMAGE CHOICE -->
+<div class="screen" id="s5">
+  <div class="screen-inner">
+    <div class="logo-bar">
+      <div class="logo-dot"></div>
+      <span class="logo-text">Серия 1 · Задание 1</span>
+      <span style="margin-left:auto"><span class="timer-badge"><span class="timer-dot"></span><span id="timer-s5">00:00</span></span></span>
+    </div>
+    <div class="screen-number">Шаг 5 из 7</div>
+    <h2>Выберите картинку, наиболее подходящую к тексту</h2>
+    <div class="image-grid">
+      <div class="img-option" id="img-1" onclick="selectImage(1)">
+        <div class="checkmark">✓</div>
+        <svg viewBox="0 0 200 150" xmlns="http://www.w3.org/2000/svg">
+          <rect x="0" y="95" width="200" height="55" fill="#a8d5a2" opacity="0.4"/>
+          <circle cx="100" cy="52" r="26" fill="none" stroke="currentColor" stroke-width="2" opacity="0.5"/>
+          <line x1="100" y1="26" x2="100" y2="78" stroke="currentColor" stroke-width="2" opacity="0.5"/>
+          <line x1="74" y1="52" x2="126" y2="52" stroke="currentColor" stroke-width="2" opacity="0.5"/>
+          <rect x="28" y="100" width="22" height="14" rx="3" fill="currentColor" opacity="0.3"/>
+          <rect x="58" y="103" width="22" height="14" rx="3" fill="currentColor" opacity="0.3"/>
+          <rect x="88" y="97" width="22" height="14" rx="3" fill="currentColor" opacity="0.3"/>
+          <circle cx="38" cy="80" r="7" fill="currentColor" opacity="0.25"/>
+          <circle cx="68" cy="84" r="6" fill="currentColor" opacity="0.25"/>
+          <circle cx="155" cy="76" r="8" fill="currentColor" opacity="0.25"/>
+        </svg>
+        <span class="img-label">Вариант А — парк</span>
+      </div>
+      <div class="img-option" id="img-2" onclick="selectImage(2)">
+        <div class="checkmark">✓</div>
+        <svg viewBox="0 0 200 150" xmlns="http://www.w3.org/2000/svg">
+          <path d="M0 105 Q50 65 100 85 Q150 105 200 75 L200 150 L0 150Z" fill="#b8d4e8" opacity="0.45"/>
+          <ellipse cx="58" cy="100" rx="24" ry="9" fill="none" stroke="currentColor" stroke-width="2" opacity="0.4"/>
+          <ellipse cx="142" cy="94" rx="20" ry="7" fill="none" stroke="currentColor" stroke-width="2" opacity="0.4"/>
+          <rect x="78" y="48" width="44" height="28" rx="4" fill="none" stroke="currentColor" stroke-width="2" opacity="0.35"/>
+          <line x1="8" y1="38" x2="192" y2="38" stroke="currentColor" stroke-width="1" stroke-dasharray="5,5" opacity="0.25"/>
+          <circle cx="28" cy="60" r="6" fill="currentColor" opacity="0.25"/>
+          <circle cx="172" cy="56" r="6" fill="currentColor" opacity="0.25"/>
+        </svg>
+        <span class="img-label">Вариант Б — набережная</span>
+      </div>
+      <div class="img-option" id="img-3" onclick="selectImage(3)">
+        <div class="checkmark">✓</div>
+        <svg viewBox="0 0 200 150" xmlns="http://www.w3.org/2000/svg">
+          <rect x="18" y="28" width="72" height="94" rx="4" fill="none" stroke="currentColor" stroke-width="2" opacity="0.35"/>
+          <rect x="108" y="44" width="72" height="78" rx="4" fill="none" stroke="currentColor" stroke-width="2" opacity="0.35"/>
+          <line x1="18" y1="62" x2="90" y2="62" stroke="currentColor" stroke-width="1.5" opacity="0.25"/>
+          <line x1="18" y1="78" x2="90" y2="78" stroke="currentColor" stroke-width="1.5" opacity="0.25"/>
+          <line x1="18" y1="94" x2="90" y2="94" stroke="currentColor" stroke-width="1.5" opacity="0.25"/>
+          <circle cx="54" cy="16" r="9" fill="currentColor" opacity="0.18"/>
+          <circle cx="144" cy="30" r="9" fill="currentColor" opacity="0.18"/>
+        </svg>
+        <span class="img-label">Вариант В — город</span>
+      </div>
+    </div>
+    <div class="error-msg" id="img-err">Пожалуйста, выберите один из вариантов.</div>
+    <div class="nav-bar">
+      <div class="progress-dots">
+        <div class="pdot done"></div><div class="pdot done"></div><div class="pdot done"></div>
+        <div class="pdot done"></div><div class="pdot current"></div><div class="pdot"></div><div class="pdot"></div>
+      </div>
+      <button class="btn-next" onclick="checkImgAndNext()">Далее →</button>
+    </div>
+  </div>
+</div>
+
+<!-- S6: EMOTION + WORDS + SENTENCES -->
+<div class="screen" id="s6">
+  <div class="screen-inner">
+    <div class="logo-bar">
+      <div class="logo-dot"></div>
+      <span class="logo-text">Серия 1 · Задания 2–4</span>
+      <span style="margin-left:auto"><span class="timer-badge"><span class="timer-dot"></span><span id="timer-s6">00:00</span></span></span>
+    </div>
+    <div class="screen-number">Шаг 6 из 7</div>
+
+    <div class="q-section" style="border-top:none;padding-top:0">
+      <div class="q-title">1. Какую эмоцию вызывал текст? Выберите смайлик</div>
+      <div class="emoji-row">
+        <button class="emoji-btn" onclick="selectEmoji(this,'Очень негативная')"><span class="echeck">✓</span><span class="face">😡</span><span class="elabel">Очень<br>негативная</span></button>
+        <button class="emoji-btn" onclick="selectEmoji(this,'Негативная')"><span class="echeck">✓</span><span class="face">😟</span><span class="elabel">Негативная</span></button>
+        <button class="emoji-btn" onclick="selectEmoji(this,'Слегка негативная')"><span class="echeck">✓</span><span class="face">😕</span><span class="elabel">Слегка<br>негативная</span></button>
+        <button class="emoji-btn" onclick="selectEmoji(this,'Нейтральная')"><span class="echeck">✓</span><span class="face">😐</span><span class="elabel">Нейтральная</span></button>
+        <button class="emoji-btn" onclick="selectEmoji(this,'Слегка позитивная')"><span class="echeck">✓</span><span class="face">🙂</span><span class="elabel">Слегка<br>позитивная</span></button>
+        <button class="emoji-btn" onclick="selectEmoji(this,'Позитивная')"><span class="echeck">✓</span><span class="face">😊</span><span class="elabel">Позитивная</span></button>
+        <button class="emoji-btn" onclick="selectEmoji(this,'Очень позитивная')"><span class="echeck">✓</span><span class="face">😄</span><span class="elabel">Очень<br>позитивная</span></button>
+      </div>
+    </div>
+
+    <div class="q-section">
+      <div class="q-title">2. Выберите слова, которые встречались в тексте</div>
+      <div class="word-section-label">Форма / направление</div>
+      <div class="word-cloud">
+        <span class="word-chip" onclick="toggleWord(this,'кривая')"><span class="wcheck">✓</span>кривая</span>
+        <span class="word-chip" onclick="toggleWord(this,'узкая')"><span class="wcheck">✓</span>узкая</span>
+        <span class="word-chip" onclick="toggleWord(this,'короткая')"><span class="wcheck">✓</span>короткая</span>
+        <span class="word-chip" onclick="toggleWord(this,'ломаная')"><span class="wcheck">✓</span>ломаная</span>
+        <span class="word-chip" onclick="toggleWord(this,'зигзагом')"><span class="wcheck">✓</span>зигзагом</span>
+        <span class="word-chip" onclick="toggleWord(this,'прямая')"><span class="wcheck">✓</span>прямая</span>
+        <span class="word-chip" onclick="toggleWord(this,'наклонная')"><span class="wcheck">✓</span>наклонная</span>
+        <span class="word-chip" onclick="toggleWord(this,'боковая')"><span class="wcheck">✓</span>боковая</span>
+      </div>
+      <hr class="divider-sm">
+      <div class="word-section-label">Звук / свет</div>
+      <div class="word-cloud">
+        <span class="word-chip" onclick="toggleWord(this,'громкая')"><span class="wcheck">✓</span>громкая</span>
+        <span class="word-chip" onclick="toggleWord(this,'резкая')"><span class="wcheck">✓</span>резкая</span>
+        <span class="word-chip" onclick="toggleWord(this,'чёткая')"><span class="wcheck">✓</span>чёткая</span>
+        <span class="word-chip" onclick="toggleWord(this,'яркая')"><span class="wcheck">✓</span>яркая</span>
+        <span class="word-chip" onclick="toggleWord(this,'приглушённая')"><span class="wcheck">✓</span>приглушённая</span>
+        <span class="word-chip" onclick="toggleWord(this,'отчаивая')"><span class="wcheck">✓</span>отчаивая</span>
+        <span class="word-chip" onclick="toggleWord(this,'звонкая')"><span class="wcheck">✓</span>звонкая</span>
+        <span class="word-chip" onclick="toggleWord(this,'открытая')"><span class="wcheck">✓</span>открытая</span>
+      </div>
+      <hr class="divider-sm">
+      <div class="word-section-label">Посуда / ёмкости</div>
+      <div class="word-cloud">
+        <span class="word-chip" onclick="toggleWord(this,'кружка')"><span class="wcheck">✓</span>кружка</span>
+        <span class="word-chip" onclick="toggleWord(this,'бокал')"><span class="wcheck">✓</span>бокал</span>
+        <span class="word-chip" onclick="toggleWord(this,'термос')"><span class="wcheck">✓</span>термос</span>
+        <span class="word-chip" onclick="toggleWord(this,'стакан')"><span class="wcheck">✓</span>стакан</span>
+        <span class="word-chip" onclick="toggleWord(this,'чашка')"><span class="wcheck">✓</span>чашка</span>
+        <span class="word-chip" onclick="toggleWord(this,'графин')"><span class="wcheck">✓</span>графин</span>
+        <span class="word-chip" onclick="toggleWord(this,'бутылка')"><span class="wcheck">✓</span>бутылка</span>
+        <span class="word-chip" onclick="toggleWord(this,'торопятся')"><span class="wcheck">✓</span>торопятся</span>
+      </div>
+    </div>
+
+    <div class="q-section">
+      <div class="q-title">3. Выберите предложения, соответствующие содержанию текста</div>
+      <div class="sentence-list">
+        <button class="sent-btn" onclick="toggleSent(this,'Люди сидят на бордюрах')"><span class="scheck">✓</span>Люди сидят на бордюрах</button>
+        <button class="sent-btn" onclick="toggleSent(this,'Люди катаются на катерах')"><span class="scheck">✓</span>Люди катаются на катерах</button>
+        <button class="sent-btn" onclick="toggleSent(this,'В парке работают аттракционы')"><span class="scheck">✓</span>В парке работают аттракционы</button>
+        <button class="sent-btn" onclick="toggleSent(this,'Парк закрыт по воскресеньям')"><span class="scheck">✓</span>Парк закрыт по воскресеньям</button>
+        <button class="sent-btn" onclick="toggleSent(this,'Дети играют в мяч на газонах')"><span class="scheck">✓</span>Дети играют в мяч на газонах</button>
+      </div>
+    </div>
+
+    <div class="error-msg" id="q6-err">Пожалуйста, выберите эмоцию (смайлик).</div>
+    <div class="nav-bar">
+      <div class="progress-dots">
+        <div class="pdot done"></div><div class="pdot done"></div><div class="pdot done"></div>
+        <div class="pdot done"></div><div class="pdot done"></div><div class="pdot current"></div><div class="pdot"></div>
+      </div>
+      <button class="btn-next" onclick="checkQ6AndNext()">Далее →</button>
+    </div>
+  </div>
+</div>
+
+<!-- S7: TRIAL END -->
+<div class="screen" id="s7">
+  <div class="screen-inner">
+    <div class="logo-bar"><div class="logo-dot"></div><span class="logo-text">Лингвистическое исследование · 2026</span></div>
+    <div class="screen-number">Пробная серия завершена</div>
+    <h1>Это была пробная серия исследования.</h1>
+    <p class="instruction">Если у Вас возникли вопросы, пожалуйста, обратитесь к экспериментатору.</p>
+    <p class="instruction" style="font-weight:500; color: var(--color-text-primary);">Заранее благодарим Вас за участие и желаем успеха!</p>
+    <div class="spacebar-hint"><span class="key-badge">ПРОБЕЛ</span><span class="hint-text">чтобы завершить и сохранить результаты</span></div>
+    <div class="progress-dots" style="margin-top:1.5rem">
+      <div class="pdot done"></div><div class="pdot done"></div><div class="pdot done"></div>
+      <div class="pdot done"></div><div class="pdot done"></div><div class="pdot done"></div><div class="pdot current"></div>
+    </div>
+  </div>
+</div>
+
+<!-- FINAL -->
+<div class="screen" id="sFinal">
+  <div class="screen-inner">
+    <div class="final-icon">✓</div>
+    <div class="screen-number">Исследование завершено</div>
+    <h1>Спасибо за участие!</h1>
+    <p class="instruction">Ваши ответы записаны. Нажмите кнопку ниже, чтобы скачать результаты в формате CSV.</p>
+    <div class="csv-preview" id="csv-preview">Генерация данных...</div>
+    <button class="btn-primary" onclick="downloadCSV()">Скачать результаты (.csv)</button>
+  </div>
+</div>
+
+</div>
+
+<script>
+function moscowISO() {
+  const now = new Date();
+  const msk = new Date(now.toLocaleString('en-US', { timeZone: 'Europe/Moscow' }));
+  const pad = n => String(n).padStart(2,'0');
+  return `${msk.getFullYear()}-${pad(msk.getMonth()+1)}-${pad(msk.getDate())} ${pad(msk.getHours())}:${pad(msk.getMinutes())}:${pad(msk.getSeconds())} МСК`;
+}
+
+let currentScreen = 1;
+let selectedImage = null;
+let selectedEmotion = null;
+const results = {};
+const timing = {};
+const clickLog = [];
+const timerIntervals = {};
+const screenStartMs = {};
+
+function logClick(screen, action, value) {
+  clickLog.push({ time_msk: moscowISO(), screen, action, value: String(value) });
+}
+
+function startScreenTimer(screenId) {
+  screenStartMs[screenId] = Date.now();
+  timing[screenId] = { start: moscowISO(), end: null, duration_sec: null };
+  const el = document.getElementById('timer-s' + screenId);
+  if (!el) return;
+  if (timerIntervals[screenId]) clearInterval(timerIntervals[screenId]);
+  timerIntervals[screenId] = setInterval(() => {
+    const sec = Math.floor((Date.now() - screenStartMs[screenId]) / 1000);
+    el.textContent = String(Math.floor(sec/60)).padStart(2,'0') + ':' + String(sec%60).padStart(2,'0');
+  }, 500);
+}
+
+function stopScreenTimer(screenId) {
+  if (timerIntervals[screenId]) clearInterval(timerIntervals[screenId]);
+  if (timing[screenId]) {
+    timing[screenId].end = moscowISO();
+    timing[screenId].duration_sec = Math.round((Date.now() - screenStartMs[screenId]) / 1000);
+  }
+}
+
+function goTo(n) {
+  stopScreenTimer(currentScreen);
+  document.getElementById('s' + currentScreen).classList.remove('active');
+  currentScreen = n;
+  const target = n === 'final' ? 'sFinal' : 's' + n;
+  document.getElementById(target).classList.add('active');
+  if (n !== 'final' && document.getElementById('timer-s' + n)) startScreenTimer(n);
+  logClick(n, 'screen_open', target);
+}
+
+function authSubmit() {
+  const name = document.getElementById('auth-name').value.trim();
+  const surname = document.getElementById('auth-surname').value.trim();
+  const level = document.getElementById('auth-level').value;
+  if (!name || !surname || !level) { document.getElementById('auth-err').style.display='block'; return; }
+  document.getElementById('auth-err').style.display='none';
+  results.participant = { name, surname, age: document.getElementById('auth-age').value, lang: document.getElementById('auth-lang').value, level, code: document.getElementById('auth-code').value, session_start: moscowISO() };
+  logClick(1, 'auth_submit', name + ' ' + surname);
+  goTo(2);
+}
+
+function logScaleChange(scale, value) { logClick(4, 'scale_' + scale, value); }
+
+function selectImage(n) {
+  [1,2,3].forEach(i => document.getElementById('img-'+i).classList.remove('selected'));
+  document.getElementById('img-'+n).classList.add('selected');
+  selectedImage = n;
+  const labels = {1:'Вариант А — парк', 2:'Вариант Б — набережная', 3:'Вариант В — город'};
+  logClick(5, 'image_selected', labels[n]);
+}
+
+function checkImgAndNext() {
+  if (!selectedImage) { document.getElementById('img-err').style.display='block'; return; }
+  document.getElementById('img-err').style.display='none';
+  const labels = {1:'Вариант А — парк', 2:'Вариант Б — набережная', 3:'Вариант В — город'};
+  results.imageChoice = labels[selectedImage];
+  results.scaleInterest = document.getElementById('scale-interest').value;
+  results.scaleDifficulty = document.getElementById('scale-difficulty').value;
+  goTo(6);
+}
+
+function selectEmoji(btn, label) {
+  document.querySelectorAll('.emoji-btn').forEach(b => b.classList.remove('selected'));
+  btn.classList.add('selected');
+  selectedEmotion = label;
+  logClick(6, 'emotion_selected', label);
+}
+
+function toggleWord(el, word) {
+  el.classList.toggle('selected');
+  logClick(6, el.classList.contains('selected') ? 'word_selected' : 'word_deselected', word);
+}
+
+function toggleSent(el, text) {
+  el.classList.toggle('selected');
+  logClick(6, el.classList.contains('selected') ? 'sent_selected' : 'sent_deselected', text);
+}
+
+function checkQ6AndNext() {
+  if (!selectedEmotion) { document.getElementById('q6-err').style.display='block'; return; }
+  document.getElementById('q6-err').style.display='none';
+  results.emotion = selectedEmotion;
+  const words = []; document.querySelectorAll('.word-chip.selected').forEach(w => words.push(w.textContent.trim())); results.selectedWords = words.join('; ');
+  const sents = []; document.querySelectorAll('.sent-btn.selected').forEach(s => sents.push(s.textContent.trim())); results.selectedSentences = sents.join('; ');
+  goTo(7);
+}
+
+function buildCSV() {
+  const p = results.participant || {};
+  const t4 = timing[4]||{}, t5 = timing[5]||{}, t6 = timing[6]||{};
+  const rows = [
+    ['=== ДАННЫЕ УЧАСТНИКА ===',''],
+    ['Имя', p.name||''], ['Фамилия', p.surname||''], ['Возраст', p.age||''],
+    ['Родной язык', p.lang||''], ['Уровень русского', p.level||''],
+    ['Код участника', p.code||''], ['Начало сессии (МСК)', p.session_start||''],
+    [''],
+    ['=== СЕРИЯ 1 — ПАРК ГОРЬКОГО ===',''],
+    ['Шкала интереса (−10..+10)', results.scaleInterest||''],
+    ['Шкала сложности (−10..+10)', results.scaleDifficulty||''],
+    ['Выбранная картинка', results.imageChoice||''],
+    ['Эмоция', results.emotion||''],
+    ['Отмеченные слова', results.selectedWords||''],
+    ['Выбранные предложения', results.selectedSentences||''],
+    [''],
+    ['=== ВРЕМЯ ПО ЭКРАНАМ (МСК) ===',''],
+    ['Экран 4 — начало', t4.start||''], ['Экран 4 — конец', t4.end||''], ['Экран 4 — длительность (сек)', t4.duration_sec||''],
+    ['Экран 5 — начало', t5.start||''], ['Экран 5 — конец', t5.end||''], ['Экран 5 — длительность (сек)', t5.duration_sec||''],
+    ['Экран 6 — начало', t6.start||''], ['Экран 6 — конец', t6.end||''], ['Экран 6 — длительность (сек)', t6.duration_sec||''],
+    [''],
+    ['=== ЛОГ КЛИКОВ ===','',''],
+    ['Время (МСК)', 'Экран', 'Действие', 'Значение'],
+    ...clickLog.map(c => [c.time_msk, 'Экран '+c.screen, c.action, c.value])
+  ];
+  return rows.map(r => r.map(c => '"'+String(c).replace(/"/g,'""')+'"').join(',')).join('\n');
+}
+
+function finalize() {
+  stopScreenTimer(currentScreen);
+  logClick('final', 'session_end', moscowISO());
+  document.getElementById('csv-preview').textContent = buildCSV();
+  document.getElementById('s'+currentScreen).classList.remove('active');
+  currentScreen = 'final';
+  document.getElementById('sFinal').classList.add('active');
+}
+
+function downloadCSV() {
+  const p = results.participant || {};
+  const blob = new Blob(['\uFEFF'+buildCSV()], {type:'text/csv;charset=utf-8;'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'experiment_'+(p.surname||'participant')+'_'+(p.code||'nocode')+'.csv';
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+document.addEventListener('keydown', function(e) {
+  if (e.code !== 'Space') return;
+  if (['INPUT','SELECT','TEXTAREA','BUTTON'].includes(document.activeElement.tagName)) return;
+  e.preventDefault();
+  if (currentScreen===1) authSubmit();
+  else if (currentScreen===2) goTo(3);
+  else if (currentScreen===3) { goTo(4); startScreenTimer(4); }
+  else if (currentScreen===4) goTo(5);
+  else if (currentScreen===5) checkImgAndNext();
+  else if (currentScreen===6) checkQ6AndNext();
+  else if (currentScreen===7) finalize();
+});
+</script>
